@@ -863,7 +863,9 @@
     const dpr = window.devicePixelRatio || 1;
     const parentWidth = canvas.parentElement.clientWidth || canvas.clientWidth || 220;
     const parentHeight = canvas.parentElement.clientHeight || canvas.clientHeight || parentWidth;
-    const size = Math.max(180, Math.round(Math.min(parentWidth, parentHeight)));
+    const isCompactCategoryDonut = canvas.id === 'categoryDonutChart' && window.matchMedia('(max-width: 620px)').matches;
+    const minimumSize = isCompactCategoryDonut ? 96 : 140;
+    const size = Math.max(minimumSize, Math.round(Math.min(parentWidth, parentHeight)));
 
     canvas.width = Math.round(size * dpr);
     canvas.height = Math.round(size * dpr);
