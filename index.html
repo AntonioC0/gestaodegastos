@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sistema pessoal de gestão de ganhos, gastos e planejamento mensal." />
+  <title>Gestão de gastos</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegação principal">
+      <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Fechar menu">
+        <i data-lucide="x" aria-hidden="true"></i>
+      </button>
+
+      <div class="sidebar-brand">
+        <span class="brand-name">Gestão de gastos</span>
+      </div>
+
+      <button class="sidebar-toggle" id="sidebarToggleButton" type="button" aria-label="Recolher menu" aria-expanded="true">
+        <i data-lucide="menu" aria-hidden="true"></i>
+      </button>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item is-active" data-view="dashboard" type="button" title="Dashboard">
+          <span class="nav-icon" aria-hidden="true"><i data-lucide="layout-dashboard"></i></span>
+          <span class="nav-label">Dashboard</span>
+        </button>
+        <button class="nav-item" data-view="entries" type="button" title="Lançamentos">
+          <span class="nav-icon" aria-hidden="true"><i data-lucide="receipt-text"></i></span>
+          <span class="nav-label">Lançamentos</span>
+        </button>
+        <button class="nav-item" data-view="planning" type="button" title="Planejamento">
+          <span class="nav-icon" aria-hidden="true"><i data-lucide="chart-pie"></i></span>
+          <span class="nav-label">Planejamento</span>
+        </button>
+      </nav>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="mobile-menu-button" id="mobileMenuButton" aria-label="Abrir menu">
+          <i data-lucide="menu" aria-hidden="true"></i>
+        </button>
+        <div>
+          <h1 id="pageTitle">Dashboard</h1>
+          <p id="pageSubtitle">Visão geral do mês</p>
+        </div>
+
+        <label class="month-picker" aria-label="Selecionar mês">
+          <span aria-hidden="true"><i data-lucide="calendar-days"></i></span>
+          <input id="monthFilter" type="month" />
+        </label>
+      </header>
+
+      <section class="view is-active" id="dashboardView" aria-labelledby="pageTitle">
+        <div class="kpi-grid dashboard-kpis">
+          <article class="kpi-card kpi-positive">
+            <div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="circle-dollar-sign"></i></span>Ganhos do mês</div>
+            <strong id="dashIncome">R$ 0,00</strong>
+          </article>
+          <article class="kpi-card kpi-negative">
+            <div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="receipt-text"></i></span>Gastos fixos</div>
+            <strong id="dashFixed">R$ 0,00</strong>
+          </article>
+          <article class="kpi-card kpi-neutral">
+            <div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="calculator"></i></span>Saldo restante</div>
+            <strong id="dashBaseBalance">R$ 0,00</strong>
+          </article>
+          <article class="kpi-card kpi-saving">
+            <div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="piggy-bank"></i></span>Quanto guardar</div>
+            <strong id="dashSaving">R$ 0,00</strong>
+            <small id="dashSavingPercent">0% do restante</small>
+          </article>
+          <article class="kpi-card kpi-spend">
+            <div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="wallet-cards"></i></span>Limite para gastar</div>
+            <strong id="dashSpendLimit">R$ 0,00</strong>
+            <small>Após separar a reserva</small>
+          </article>
+          <article class="kpi-card kpi-available">
+            <div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="badge-check"></i></span>Disponível agora</div>
+            <strong id="dashAvailableNow">R$ 0,00</strong>
+            <small>Descontando gastos variáveis</small>
+          </article>
+        </div>
+
+        <div class="dashboard-main-grid">
+          <article class="panel calculation-panel">
+            <div class="panel-header">
+              <h2>Cálculo do mês</h2>
+            </div>
+            <div class="calculation-list">
+              <div><span><i class="dot dot-green"></i>Ganhos do mês</span><strong class="text-green" id="calcIncome">R$ 0,00</strong></div>
+              <div><span><i class="dot dot-red"></i>− Gastos fixos</span><strong class="text-red" id="calcFixed">R$ 0,00</strong></div>
+              <div class="calc-divider"><span><b>=</b> Saldo restante</span><strong id="calcBase">R$ 0,00</strong></div>
+              <div><span><i class="dot dot-orange"></i>Guardar <span id="calcPercentLabel">(0%)</span></span><strong class="text-orange" id="calcSaving">R$ 0,00</strong></div>
+              <div><span><i class="dot dot-blue"></i>Limite para gastar</span><strong class="text-blue" id="calcSpendLimit">R$ 0,00</strong></div>
+              <div><span><i class="dot dot-purple"></i>− Gastos variáveis</span><strong class="text-purple" id="calcVariable">R$ 0,00</strong></div>
+              <div class="calc-total"><span><b>=</b> Disponível agora</span><strong id="calcAvailable">R$ 0,00</strong></div>
+            </div>
+            <div class="calculation-bar" aria-label="Distribuição financeira do mês">
+              <span class="bar-segment bar-income" id="barIncome"></span>
+              <span class="bar-segment bar-fixed" id="barFixed"></span>
+              <span class="bar-segment bar-saving" id="barSaving"></span>
+              <span class="bar-segment bar-variable" id="barVariable"></span>
+              <span class="bar-segment bar-available" id="barAvailable"></span>
+            </div>
+            <div class="bar-legend">
+              <span><i class="dot dot-red"></i>Fixos</span>
+              <span><i class="dot dot-orange"></i>Guardar</span>
+              <span><i class="dot dot-purple"></i>Variáveis</span>
+              <span><i class="dot dot-blue"></i>Disponível</span>
+            </div>
+          </article>
+
+          <article class="panel chart-panel">
+            <div class="panel-header panel-header-row">
+              <h2>Fluxo de gastos</h2>
+              <span class="chart-legend"><i class="dot dot-red"></i>Gastos diários</span>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="expenseFlowChart" aria-label="Gráfico de gastos diários"></canvas>
+            </div>
+          </article>
+        </div>
+
+        <div class="dashboard-lower-grid">
+          <article class="panel categories-panel">
+            <div class="panel-header"><h2>Gastos por categoria</h2></div>
+            <div class="category-chart-layout">
+              <div class="donut-wrap">
+                <canvas id="categoryDonutChart" aria-label="Gráfico de gastos por categoria"></canvas>
+                <div class="donut-center">
+                  <span>Total</span>
+                  <strong id="categoryTotal">R$ 0,00</strong>
+                </div>
+              </div>
+              <div class="category-legend" id="categoryLegend"></div>
+            </div>
+          </article>
+
+          <article class="panel recent-panel">
+            <div class="panel-header panel-header-row">
+              <h2>Últimos lançamentos</h2>
+              <button class="text-button" type="button" data-go-to="entries">Ver todos</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Descrição</th>
+                    <th>Tipo</th>
+                    <th>Categoria</th>
+                    <th>Valor</th>
+                  </tr>
+                </thead>
+                <tbody id="recentEntriesBody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="recentEmpty">Nenhum lançamento neste mês.</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="entriesView" aria-labelledby="pageTitle">
+        <div class="kpi-grid entries-kpis">
+          <article class="kpi-card kpi-positive">
+            <div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="trending-up"></i></span>Ganhos lançados</div>
+            <strong id="entriesIncome">R$ 0,00</strong>
+          </article>
+          <article class="kpi-card kpi-negative">
+            <div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="receipt-text"></i></span>Gastos fixos lançados</div>
+            <strong id="entriesFixed">R$ 0,00</strong>
+          </article>
+          <article class="kpi-card kpi-negative">
+            <div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="shopping-bag"></i></span>Outros gastos</div>
+            <strong id="entriesVariable">R$ 0,00</strong>
+          </article>
+          <article class="kpi-card kpi-spend">
+            <div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="scale"></i></span>Saldo parcial</div>
+            <strong id="entriesBalance">R$ 0,00</strong>
+          </article>
+        </div>
+
+        <article class="panel form-panel">
+          <div class="panel-header panel-header-row">
+            <div>
+              <h2 id="entryFormTitle">Novo lançamento</h2>
+              <p>Preencha os dados e salve.</p>
+            </div>
+            <button class="secondary-button hidden" type="button" id="cancelEditButton">Cancelar edição</button>
+          </div>
+
+          <form id="entryForm" novalidate>
+            <input type="hidden" id="entryId" />
+            <div class="form-grid">
+              <fieldset class="field field-type">
+                <legend>Tipo</legend>
+                <div class="segmented-control" id="typeControl">
+                  <button type="button" class="segment is-selected is-income" data-type="income">↑ Ganho</button>
+                  <button type="button" class="segment" data-type="expense">↓ Gasto</button>
+                </div>
+              </fieldset>
+
+              <label class="field field-description">
+                <span>Descrição</span>
+                <input id="descriptionInput" type="text" placeholder="Ex.: Salário, aluguel, supermercado" maxlength="80" required />
+              </label>
+
+              <label class="field field-value">
+                <span>Valor (R$)</span>
+                <input id="valueInput" type="number" min="0.01" step="0.01" placeholder="0,00" required />
+              </label>
+
+              <label class="field field-category">
+                <span>Categoria</span>
+                <select id="categoryInput" required></select>
+              </label>
+
+              <label class="field field-date">
+                <span>Data</span>
+                <input id="dateInput" type="date" required />
+              </label>
+
+              <fieldset class="field field-fixed" id="fixedField">
+                <legend>Gasto fixo?</legend>
+                <div class="segmented-control compact" id="fixedControl">
+                  <button type="button" class="segment" data-fixed="true">Sim</button>
+                  <button type="button" class="segment is-selected" data-fixed="false">Não</button>
+                </div>
+              </fieldset>
+
+              <label class="field field-payment">
+                <span>Forma de pagamento</span>
+                <select id="paymentInput">
+                  <option value="">Não informado</option>
+                  <option>Pix</option>
+                  <option>Dinheiro</option>
+                  <option>Débito</option>
+                  <option>Crédito</option>
+                  <option>Transferência</option>
+                  <option>Boleto</option>
+                </select>
+              </label>
+
+              <label class="field field-notes">
+                <span>Observação</span>
+                <input id="notesInput" type="text" maxlength="120" placeholder="Observação opcional" />
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="secondary-button" id="clearFormButton">Limpar</button>
+              <button type="submit" class="primary-button" id="saveEntryButton">Salvar lançamento</button>
+            </div>
+            <p class="form-message" id="formMessage" role="status"></p>
+          </form>
+        </article>
+
+        <article class="panel history-panel">
+          <div class="panel-header"><h2>Histórico de lançamentos</h2></div>
+          <div class="filters-row">
+            <label>
+              <span>Categoria</span>
+              <select id="historyCategoryFilter">
+                <option value="all">Todas as categorias</option>
+              </select>
+            </label>
+            <label>
+              <span>Tipo</span>
+              <select id="historyTypeFilter">
+                <option value="all">Todos os tipos</option>
+                <option value="income">Ganhos</option>
+                <option value="expense">Gastos</option>
+                <option value="fixed">Gastos fixos</option>
+                <option value="variable">Gastos variáveis</option>
+              </select>
+            </label>
+            <label class="filter-search">
+              <span>Buscar</span>
+              <input id="historySearch" type="search" placeholder="Buscar descrição" />
+            </label>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Descrição</th>
+                  <th>Tipo</th>
+                  <th>Categoria</th>
+                  <th>Fixo</th>
+                  <th>Valor</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="historyEmpty">Nenhum lançamento encontrado.</div>
+        </article>
+      </section>
+
+      <section class="view" id="planningView" aria-labelledby="pageTitle">
+        <div class="kpi-grid planning-kpis">
+          <article class="kpi-card kpi-positive"><div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="circle-dollar-sign"></i></span>Ganhos do mês</div><strong id="planIncome">R$ 0,00</strong></article>
+          <article class="kpi-card kpi-negative"><div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="receipt-text"></i></span>Gastos fixos</div><strong id="planFixed">R$ 0,00</strong></article>
+          <article class="kpi-card kpi-neutral"><div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="calculator"></i></span>Saldo restante</div><strong id="planBase">R$ 0,00</strong></article>
+          <article class="kpi-card kpi-saving"><div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="target"></i></span>Meta para guardar</div><strong id="planPercent">40%</strong></article>
+          <article class="kpi-card kpi-saving"><div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="piggy-bank"></i></span>Quanto guardar</div><strong id="planSaving">R$ 0,00</strong></article>
+          <article class="kpi-card kpi-spend"><div class="kpi-label"><span class="kpi-icon" aria-hidden="true"><i data-lucide="wallet-cards"></i></span>Quanto posso gastar</div><strong id="planSpendLimit">R$ 0,00</strong></article>
+        </div>
+
+        <div class="planning-main-grid">
+          <article class="panel base-panel">
+            <div class="panel-header"><h2>Base do cálculo</h2></div>
+            <div class="base-fields">
+              <label><span>Ganhos do mês</span><input id="planIncomeInput" type="text" readonly /></label>
+              <label><span>Gastos fixos</span><input id="planFixedInput" type="text" readonly /></label>
+              <label><span>Meta para guardar</span><div class="input-suffix"><input id="planPercentInput" type="number" min="0" max="90" step="1" readonly /><span>%</span></div></label>
+            </div>
+            <div class="formula-line">Saldo restante = Ganhos − Gastos fixos</div>
+            <strong class="formula-result" id="planFormulaResult">R$ 0,00</strong>
+          </article>
+
+          <article class="panel distribution-panel">
+            <div class="panel-header"><h2>Distribuição do restante</h2></div>
+            <div class="distribution-donut-wrap">
+              <canvas id="planningDonutChart" aria-label="Distribuição entre guardar e gastar"></canvas>
+              <div class="donut-center planning-center"><span>Restante</span><strong id="planningDonutTotal">R$ 0,00</strong></div>
+            </div>
+            <div class="split-summary">
+              <div><span><i class="dot dot-orange"></i>Guardar</span><strong class="text-orange" id="splitSaving">R$ 0,00</strong><small id="splitSavingPercent">0%</small></div>
+              <div><span><i class="dot dot-blue"></i>Pode gastar</span><strong class="text-blue" id="splitSpending">R$ 0,00</strong><small id="splitSpendingPercent">0%</small></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="planning-lower-grid">
+          <article class="panel summary-panel">
+            <div class="panel-header"><h2>Resumo mensal</h2></div>
+            <div class="summary-list">
+              <div><span><i class="dot dot-green"></i>Ganhos do mês</span><strong class="text-green" id="summaryIncome">R$ 0,00</strong></div>
+              <div><span><i class="dot dot-red"></i>Gastos fixos</span><strong class="text-red" id="summaryFixed">R$ 0,00</strong></div>
+              <div><span><b>=</b> Saldo restante</span><strong id="summaryBase">R$ 0,00</strong></div>
+              <div><span><i class="dot dot-orange"></i>Valor para guardar</span><strong class="text-orange" id="summarySaving">R$ 0,00</strong></div>
+              <div><span><i class="dot dot-blue"></i>Limite para gastar</span><strong class="text-blue" id="summarySpendLimit">R$ 0,00</strong></div>
+              <div><span><i class="dot dot-purple"></i>Gastos variáveis já lançados</span><strong class="text-purple" id="summaryVariable">R$ 0,00</strong></div>
+              <div class="summary-total"><span>Disponível agora</span><strong id="summaryAvailable">R$ 0,00</strong></div>
+            </div>
+          </article>
+
+          <article class="panel budget-use-panel">
+            <div class="panel-header"><h2>Uso do limite por categoria</h2></div>
+            <div id="budgetCategoryBars" class="budget-bars"></div>
+            <div class="budget-total-row">
+              <span>Total gasto</span>
+              <strong id="budgetTotalSpent">R$ 0,00</strong>
+              <span>de</span>
+              <strong id="budgetTotalLimit">R$ 0,00</strong>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="confirmDialog">
+    <form method="dialog" class="dialog-card">
+      <h2>Excluir lançamento?</h2>
+      <p>Essa ação não poderá ser desfeita.</p>
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary-button">Cancelar</button>
+        <button value="confirm" class="danger-button">Excluir</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@1.25.0/dist/umd/lucide.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
