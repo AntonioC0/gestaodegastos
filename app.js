@@ -589,7 +589,8 @@
   }
 
   function renderRecentEntries(entries) {
-    const recent = entries.slice(0, 5);
+    const recentLimit = window.matchMedia('(max-width: 620px)').matches ? 3 : 5;
+    const recent = entries.slice(0, recentLimit);
     refs.recentEntriesBody.innerHTML = recent.map(entry => `
       <tr>
         <td>${formatDate(entry.date)}</td>
